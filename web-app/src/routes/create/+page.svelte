@@ -1,0 +1,174 @@
+<script lang="ts">
+    import { v4 as uuid } from 'uuid';
+    import { createPoll } from '$lib/index';
+
+    let question: string = $state("");
+    let options: string[] = $state([]);
+    let locations: string[] = $state([]);
+    let durationHours: number = $state(0);
+    let pollId: string;
+
+    async function addPoll() {
+        try {
+            if (options.length < 2) {
+                window.alert("At least 2 options are required.");
+                return;
+            }
+            if (locations.length === 0) {
+                window.alert("At least 1 location is required.");
+                return;
+            }
+            pollId = uuid();
+            console.log(pollId);
+            const data = await createPoll(pollId, question, options, locations, durationHours);
+            console.log(data);
+            window.alert("Poll Created with ID : " + pollId + "\nCopy it to share the poll.");
+            console.log("Poll created successfully");
+        } catch (error) {
+            window.alert("Unable to create new poll.");
+        }
+    }
+
+    function addOption(event: KeyboardEvent) {
+        if (event.key !== "Enter") return;
+        const option: string = (event.target as HTMLInputElement).value;
+        (event.target as HTMLInputElement).value = "";
+        options.push(option);
+    }
+
+    function deleteOption(event: MouseEvent) {
+        const optionIndex: string | undefined = (event.target as HTMLElement).dataset.index;
+        if (optionIndex === undefined) return;
+
+        const index: number = Number(optionIndex);
+        options = options.filter((_, i) => i !== index);
+    }
+
+    function addLocation(event: KeyboardEvent) {
+        if (event.key !== "Enter") return;
+        const location: string = (event.target as HTMLInputElement).value;
+        (event.target as HTMLInputElement).value = "";
+        locations.push(location);
+    }
+
+    function deleteLocation(event: MouseEvent) {
+        const locationIndex: string | undefined = (event.target as HTMLElement).dataset.index;
+        if (locationIndex === undefined) return;
+
+        const index: number = Number(locationIndex);
+        locations = locations.filter((_, i) => i !== index);
+    }
+</script>
+
+<div class="flex flex-col justify-center items-center min-h-screen p-6">
+    <div class="text-center text-slate-600 text-6xl min-h-20 font-extrabold mb-6">
+        Create a New Poll
+    </div>
+    <div class="flex flex-col gap-6 w-full max-w-2xl space-y-4">
+        <div class="flex flex-col gap-4 w-full">
+            <div class="flex items-left text-slate-500 text-xl font-extrabold">
+                1. Poll Question
+            </div>
+            <div class="flex flex-row items-center gap-4 rounded-lg bg-indigo-400 p-2 w-full drop-shadow-md">
+                <textarea
+                    class="rounded-lg border border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter Question to ask"
+                    rows="6"
+                    required
+                    minlength="4"
+                    bind:value={question}
+                ></textarea>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div class="flex items-left text-slate-500 text-xl font-extrabold">
+                2. Options
+            </div>
+            <div class="flex flex-col gap-2">
+                {#each options as option, i}
+                    <div class="flex flex-row items-center gap-4 rounded-lg bg-indigo-400 p-2 w-full drop-shadow-md">
+                        <span class="text-white text-sm font-bold w-1/4 text-center">
+                            Option {i + 1}
+                        </span>
+                        <input
+                            class="rounded-lg bg-white p-3 w-full"
+                            type="text"
+                            disabled
+                            value={option}
+                        />
+                        <button
+                            class="rounded-lg bg-indigo-300 text-white font-bold text-center w-1/4 h-12 hover:bg-red-400 hover:drop-shadow-md transition duration-300 ease-in-out p-2"
+                            onclick={deleteOption}
+                            data-index={i}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                {/each}
+            </div>
+            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
+                <input
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    type="text"
+                    placeholder="Enter new option. Press 'Enter' to add option."
+                    onkeydown={addOption}
+                />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div class="flex items-left text-slate-500 text-xl font-extrabold">
+                3. Locations
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center">
+                {#each locations as location, i}
+                    <div class="flex flex-row items-center gap-4 rounded-lg bg-indigo-400 p-2 drop-shadow-md w-fit">
+                        <input
+                            class="rounded-lg bg-white p-3 w-full"
+                            type="text"
+                            disabled
+                            value={location}
+                        />
+                        <button
+                            class="rounded-lg bg-indigo-300 text-white font-bold text-center w-min h-12 hover:bg-red-400 hover:drop-shadow-md transition duration-300 ease-in-out p-2"
+                            onclick={deleteLocation}
+                            data-index={i}
+                        >
+                            Remove
+                        </button>
+                    </div>
+                {/each}
+            </div>
+            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
+                <input
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    type="text"
+                    placeholder="Enter new Location. Press 'Enter' to add location."
+                    onkeydown={addLocation}
+                />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4 w-full">
+            <div class="flex items-left text-slate-500 text-xl font-extrabold">
+                4. Poll Duration (in Hours)
+            </div>
+            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
+                <input
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    type="number"
+                    placeholder="Enter duration in hours"
+                    bind:value={durationHours}
+                    min="1"
+                />
+            </div>
+        </div>
+        <button
+            class="rounded-lg bg-indigo-500 text-white font-medium w-full h-12 hover:bg-indigo-600 hover:scale-110 hover:drop-shadow-md transition duration-300 ease-in-out"
+            onclick={addPoll}
+        >
+        Submit
+        </button>
+    </div>
+</div>
