@@ -187,6 +187,10 @@ func (s *SmartContract) SubmitVote(sdk kalpsdk.TransactionContextInterface, poll
 		return fmt.Errorf("failed unmarshall pollBytes: %v", err)
 	}
 
+	if time.Now().After(poll.Expiry) {
+		return fmt.Errorf("the poll has expired, cannot submit new vote")
+	}
+
 	if optionIndex >= len(poll.Options) {
 		return fmt.Errorf("optionIndex out of bound")
 	}

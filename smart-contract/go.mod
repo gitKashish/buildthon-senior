@@ -2,10 +2,7 @@ module github.com/gitKashish/buildthon-senior/smart-contract
 
 go 1.20
 
-require (
-	github.com/google/uuid v1.6.0
-	github.com/p2eengineering/kalp-sdk-public v0.0.0-20240709111532-b1e8d8fef366
-)
+require github.com/p2eengineering/kalp-sdk-public v0.0.0-20240709111532-b1e8d8fef366
 
 require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
