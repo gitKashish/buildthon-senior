@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/p2eengineering/kalp-sdk-public/kalpsdk"
 )
 
@@ -19,6 +18,13 @@ const totalPollKey = "totalPoll"
 
 type SmartContract struct {
 	kalpsdk.Contract
+}
+
+type Result struct {
+	PollId     string                    `json:"pollId"`
+	Question   string                    `json:"question"`
+	TotalVotes int                       `json:"totalVotes"`
+	Options    map[string]map[string]int `json:"options"`
 }
 
 type Vote struct {
@@ -62,7 +68,7 @@ func (s *SmartContract) Initialize(sdk kalpsdk.TransactionContextInterface, name
 	return true, nil
 }
 
-func CreatePoll(sdk kalpsdk.TransactionContextInterface, question string, options []string, locations []string, durationHours int) (*Poll, error) {
+func (s *SmartContract) CreatePoll(sdk kalpsdk.TransactionContextInterface, pollId string, question string, options []string, locations []string, durationHours int) (*Poll, error) {
 	// Check if context has initialized first
 	initialized, err := checkInitialized(sdk)
 	if err != nil {
@@ -70,6 +76,11 @@ func CreatePoll(sdk kalpsdk.TransactionContextInterface, question string, option
 	}
 	if !initialized {
 		return nil, fmt.Errorf("contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	// Checking if poll already exists
+	if pollExists(sdk, pollId) {
+		return nil, fmt.Errorf("poll %s already exists", pollId)
 	}
 
 	// Validating params
@@ -85,11 +96,6 @@ func CreatePoll(sdk kalpsdk.TransactionContextInterface, question string, option
 		return nil, fmt.Errorf("poll must last for at least 1 hour")
 	}
 
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, fmt.Errorf("cannot create poll id: %v", err)
-	}
-
 	expiry := time.Now().Add(time.Hour * time.Duration(durationHours))
 	locations = append(locations, "other")
 
@@ -101,7 +107,7 @@ func CreatePoll(sdk kalpsdk.TransactionContextInterface, question string, option
 		Votes:     []Vote{},
 	}
 
-	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{id.String()})
+	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{pollId})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create composite key: %v", err)
 	}
@@ -139,7 +145,7 @@ func CreatePoll(sdk kalpsdk.TransactionContextInterface, question string, option
 	return poll, nil
 }
 
-func SubmitVote(sdk kalpsdk.TransactionContextInterface, pollId string, optionIndex int, locationIndex int) error {
+func (s *SmartContract) SubmitVote(sdk kalpsdk.TransactionContextInterface, pollId string, optionIndex int, locationIndex int) error {
 	// Check if context has initialized first
 	initialized, err := checkInitialized(sdk)
 	if err != nil {
@@ -150,7 +156,7 @@ func SubmitVote(sdk kalpsdk.TransactionContextInterface, pollId string, optionIn
 	}
 
 	// Validating params
-	if len(pollId) != 36 {
+	if len(pollId) <= 0 {
 		return fmt.Errorf("invalid poll id")
 	}
 
@@ -207,6 +213,53 @@ func SubmitVote(sdk kalpsdk.TransactionContextInterface, pollId string, optionIn
 	return nil
 }
 
+func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollId string) (*Result, error) {
+	// Check if context has initialized first
+	initialized, err := checkInitialized(sdk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
+	}
+	if !initialized {
+		return nil, fmt.Errorf("contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{pollId})
+	if err != nil {
+		return nil, fmt.Errorf("error creating composite key: %v", err.Error())
+	}
+
+	pollBytes, err := sdk.GetState(_pollKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if pollBytes == nil {
+		return nil, fmt.Errorf("the poll %s does not exist", pollId)
+	}
+
+	poll := new(Poll)
+	err = json.Unmarshal(pollBytes, poll)
+	if err != nil {
+		return nil, fmt.Errorf("failed unmarshall pollBytes: %v", err)
+	}
+
+	// Aggregating the votes for a poll in Result
+	var totalVotes int
+	options := make(map[string]map[string]int)
+	for _, vote := range poll.Votes {
+		totalVotes++
+		o, l := vote.OptionIndex, vote.LocationIndex
+		options[poll.Options[o]]["total"]++
+		options[poll.Options[o]][poll.Locations[l]]++
+	}
+	result := new(Result)
+	result.PollId = pollId
+	result.Question = poll.Question
+	result.TotalVotes = totalVotes
+	result.Options = options
+
+	return result, nil
+}
+
 // Helper Functions
 
 func checkInitialized(sdk kalpsdk.TransactionContextInterface) (bool, error) {
@@ -220,4 +273,17 @@ func checkInitialized(sdk kalpsdk.TransactionContextInterface) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func pollExists(sdk kalpsdk.TransactionContextInterface, pollId string) bool {
+	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{pollId})
+	if err != nil {
+		panic("cannot create composite key: " + err.Error())
+	}
+	pollBytes, err := sdk.GetState(_pollKey)
+	if err != nil {
+		panic("cannot get world state: " + err.Error())
+	}
+
+	return len(pollBytes) > 0
 }
