@@ -251,7 +251,12 @@ func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollI
 	options := make(map[string]map[string]int)
 	for _, vote := range poll.Votes {
 		totalVotes++
+
 		o, l := vote.OptionIndex, vote.LocationIndex
+		if options[poll.Options[o]] == nil {
+			options[poll.Options[o]] = make(map[string]int)
+		}
+
 		options[poll.Options[o]]["total"]++
 		options[poll.Options[o]][poll.Locations[l]]++
 	}
@@ -262,6 +267,38 @@ func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollI
 	result.Options = options
 
 	return result, nil
+}
+
+func (s *SmartContract) IsPollOpen(sdk kalpsdk.TransactionContextInterface, pollId string) (bool, error) {
+	// Check if context has initialized first
+	initialized, err := checkInitialized(sdk)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if contract is already initialized: %v", err)
+	}
+	if !initialized {
+		return false, fmt.Errorf("contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{pollId})
+	if err != nil {
+		return false, fmt.Errorf("error creating composite key: %v", err.Error())
+	}
+
+	pollBytes, err := sdk.GetState(_pollKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if pollBytes == nil {
+		return false, fmt.Errorf("the poll %s does not exist", pollId)
+	}
+
+	poll := new(Poll)
+	err = json.Unmarshal(pollBytes, poll)
+	if err != nil {
+		return false, fmt.Errorf("failed unmarshall pollBytes: %v", err)
+	}
+
+	return time.Now().Before(poll.Expiry), nil
 }
 
 // Helper Functions
