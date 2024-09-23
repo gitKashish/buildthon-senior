@@ -217,6 +217,38 @@ func (s *SmartContract) SubmitVote(sdk kalpsdk.TransactionContextInterface, poll
 	return nil
 }
 
+func (s *SmartContract) GetPoll(sdk kalpsdk.TransactionContextInterface, pollId string) (*Poll, error) {
+	// Check if context has initialized first
+	initialized, err := checkInitialized(sdk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if contract is already initialized: %v", err)
+	}
+	if !initialized {
+		return nil, fmt.Errorf("contract options need to be set before calling any function, call Initialize() to initialize contract")
+	}
+
+	_pollKey, err := sdk.CreateCompositeKey(pollPrefix, []string{pollId})
+	if err != nil {
+		return nil, fmt.Errorf("error creating composite key: %v", err.Error())
+	}
+
+	pollBytes, err := sdk.GetState(_pollKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read from world state: %v", err)
+	}
+	if pollBytes == nil {
+		return nil, fmt.Errorf("the poll %s does not exist", pollId)
+	}
+
+	poll := new(Poll)
+	err = json.Unmarshal(pollBytes, poll)
+	if err != nil {
+		return nil, fmt.Errorf("failed unmarshall pollBytes: %v", err)
+	}
+
+	return poll, nil
+}
+
 func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollId string) (*Result, error) {
 	// Check if context has initialized first
 	initialized, err := checkInitialized(sdk)
@@ -249,6 +281,18 @@ func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollI
 	// Aggregating the votes for a poll in Result
 	var totalVotes int
 	options := make(map[string]map[string]int)
+
+	locations := make(map[string]int)
+	locations["total"] = 0
+	for _, location := range poll.Locations {
+		locations[location] = 0
+	}
+
+	for _, option := range poll.Options {
+		options[option] = make(map[string]int)
+		options[option] = locations
+	}
+
 	for _, vote := range poll.Votes {
 		totalVotes++
 
@@ -260,6 +304,7 @@ func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollI
 		options[poll.Options[o]]["total"]++
 		options[poll.Options[o]][poll.Locations[l]]++
 	}
+
 	result := new(Result)
 	result.PollId = pollId
 	result.Question = poll.Question
