@@ -282,15 +282,12 @@ func (s *SmartContract) PollState(sdk kalpsdk.TransactionContextInterface, pollI
 	var totalVotes int
 	options := make(map[string]map[string]int)
 
-	locations := make(map[string]int)
-	locations["total"] = 0
-	for _, location := range poll.Locations {
-		locations[location] = 0
-	}
-
 	for _, option := range poll.Options {
 		options[option] = make(map[string]int)
-		options[option] = locations
+		options[option]["total"] = 0
+		for _, location := range poll.Locations {
+			options[option][location] = 0
+		}
 	}
 
 	for _, vote := range poll.Votes {
