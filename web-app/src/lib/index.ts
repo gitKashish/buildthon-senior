@@ -46,6 +46,13 @@ export async function createPoll (id: string, question: string, options: string[
     return callApi(endpoint, args);
 };
 
+export async function getPoll (pollId: string) {
+    const endpoint =
+        'https://gateway-api.kalp.studio/v1/contract/kalp/query/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/PollState';
+    const args = { pollId: pollId };
+    return callApi(endpoint, args);
+};
+
 export async function submitVote (pollId: string, optionIndex: number, locationIndex: number) {
     const endpoint =
         'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/SubmitVote';
