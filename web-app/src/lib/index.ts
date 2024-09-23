@@ -1,7 +1,5 @@
 import { PUBLIC_API_KEY } from '$env/static/public';
 
-import { v4 as uuid } from 'uuid'
-
 const apiKey = PUBLIC_API_KEY;
 
 const callApi = async (endpoint: string, args: { [key: string]: any }) => {
