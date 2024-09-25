@@ -33,7 +33,7 @@ const callApi = async (endpoint: string, args: { [key: string]: any }) => {
 
 export async function createPoll (id: string, question: string, options: string[], locations: string[], durationHours: number) {
     const endpoint =
-        'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/CreatePoll';
+        'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/j4LgmrFR7EM2vv3UFAZbFx5s1rGyMjCL1727068944537/CreatePoll';
     const args = {
         pollId: id,
         question: question,
@@ -46,14 +46,14 @@ export async function createPoll (id: string, question: string, options: string[
 
 export async function getPoll (pollId: string) {
     const endpoint =
-        'https://gateway-api.kalp.studio/v1/contract/kalp/query/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/PollState';
+        'https://gateway-api.kalp.studio/v1/contract/kalp/query/j4LgmrFR7EM2vv3UFAZbFx5s1rGyMjCL1727068944537/GetPoll';
     const args = { pollId: pollId };
     return callApi(endpoint, args);
 };
 
 export async function submitVote (pollId: string, optionIndex: number, locationIndex: number) {
     const endpoint =
-        'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/SubmitVote';
+        'https://gateway-api.kalp.studio/v1/contract/kalp/invoke/j4LgmrFR7EM2vv3UFAZbFx5s1rGyMjCL1727068944537/SubmitVote';
     const args = {
         pollId: pollId,
         optionIndex: optionIndex,
@@ -64,14 +64,14 @@ export async function submitVote (pollId: string, optionIndex: number, locationI
 
 export async function pollState (pollId: string) {
     const endpoint =
-        'https://gateway-api.kalp.studio/v1/contract/kalp/query/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/PollState';
+        'https://gateway-api.kalp.studio/v1/contract/kalp/query/j4LgmrFR7EM2vv3UFAZbFx5s1rGyMjCL1727068944537/PollState';
     const args = { pollId: pollId };
     return callApi(endpoint, args);
 };
 
 export async function isPollOpen (pollId: string) {
     const endpoint =
-        'https://gateway-api.kalp.studio/v1/contract/kalp/query/Xm89gsGTpPCp0vPtnSNUmLgQvstScy551727007362011/IsPollOpen';
+        'https://gateway-api.kalp.studio/v1/contract/kalp/query/j4LgmrFR7EM2vv3UFAZbFx5s1rGyMjCL1727068944537/IsPollOpen';
     const args = {
         pollId: pollId
     };

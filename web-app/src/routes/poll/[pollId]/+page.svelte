@@ -1,18 +1,48 @@
 <script lang="ts">
     import { page } from "$app/stores";
+    import type { PollResponse, PollDetails } from "$lib/ambient";
+    import { submitVote, getPoll, isPollOpen } from "$lib/index";
+
     const pollId = $page.params.pollId;
 
-    let question: string = "What is your favorite programming language?";
-    let options: string[] = [
-        "Python",
-        "Rust",
-        "Go",
-        "Haskell mentioned!"
-    ];
-    let locations: string[] = ["USA", "Europe", "Asia", "Other"];
+    let question: string = $state("");
+    let options: string[] = $state([]);
+    let locations: string[] = $state([]);
 
-    let selectedOption: string = "";
-    let selectedLocation: string = "";
+    let selectedOption: string = $state("");
+    let selectedLocation: string = $state("");
+
+    let pollDetails: PollDetails;
+
+    $effect(() => {
+        if (pollId.length != 36) {
+            alert("Invalid Poll ID. Returning to home.");
+            location.href = `/`;
+        }
+        isPollOpen(pollId)
+            .then((obj) => {
+                if (obj.result.result) {
+                    getPoll(pollId)
+                        .then((obj) => {
+                            let pollResponse: PollResponse = obj;
+                            pollDetails = pollResponse.result.result;
+                            question = pollDetails.question;
+                            options = pollDetails.options;
+                            locations = pollDetails.locations;
+                        })
+                        .catch((error) => {
+                            window.alert(
+                                "Unable to fetch poll details : " + error,
+                            );
+                        });
+                } else {
+                    location.href = `/result/${pollId}`;
+                }
+            })
+            .catch((error) => {
+                alert("Invalid Poll Id : " + error);
+            });
+    });
 
     function selectOption(option: string) {
         selectedOption = option;
@@ -22,18 +52,17 @@
         selectedLocation = location;
     }
 
-    async function submitVote() {
+    async function addVote() {
         if (!selectedOption || !selectedLocation) {
             window.alert("Please select both an option and a location.");
             return;
         }
         try {
-            console.log(
-                `Voted for: ${selectedOption} from ${selectedLocation}`,
-            );
-            window.alert(
-                `Your vote for "${selectedOption}" from "${selectedLocation}" has been submitted!`,
-            );
+            let optionIndex: number = options.indexOf(selectedOption);
+            let locationIndex: number = locations.indexOf(selectedLocation);
+            await submitVote(pollId, optionIndex, locationIndex);
+            alert("Vote submitted succesfully.");
+            location.href = "/result/" + pollId;
         } catch (error) {
             window.alert("Error submitting your vote.");
         }
@@ -43,8 +72,8 @@
 <div
     class="flex flex-col justify-center items-center min-h-screen max-w-lg m-auto p-6"
 >
-    <div class="text-slate-600 text-4xl min-h-20 mb-4 font-extrabold w-full">
-        {question}
+    <div class="text-slate-600 text-4xl mb-2 font-extrabold w-full">
+        Vote : {question}
     </div>
     <span class="text-left text-slate-400 text-lg font-bold w-full mb-8">
         Poll ID : {pollId}
@@ -57,9 +86,9 @@
             <div class="flex flex-col gap-2">
                 {#each options as option}
                     <button
-                        class="{selectedOption === option
-                            ? 'bg-indigo-500 drop-shadow-lg text-white'
-                            : 'bg-indigo-200'} w-full p-4 text-center rounded-lg font-bold transition border-2 border-transparent duration-300 ease-in-out hover:border-2 hover:border-indigo-500"
+                        class="{selectedOption == option
+                            ? 'bg-indigo-500 text-white drop-shadow-lg hover:bg-indigo-500'
+                            : 'bg-white text-gray-700 hover:bg-indigo-400'} border-2 border-indigo-500 w-full p-4 text-center rounded-lg font-bold transition duration-300 ease-in-out hover:drop-shadow-lg hover:text-white"
                         onclick={() => selectOption(option)}
                     >
                         {option}
@@ -75,9 +104,9 @@
             <div class="flex flex-col gap-2">
                 {#each locations as location, i}
                     <button
-                        class="{selectedLocation === location
-                            ? 'bg-indigo-500 drop-shadow-lg text-white'
-                            : 'bg-indigo-200'} w-full p-4 text-center rounded-lg font-bold transition border-2 border-transparent duration-300 ease-in-out hover:border-2 hover:border-indigo-500"
+                        class="{selectedLocation == location
+                            ? 'bg-indigo-500 text-white drop-shadow-lg hover:bg-indigo-500'
+                            : 'bg-white text-gray-700 hover:bg-indigo-400'} border-2 border-indigo-500 w-full p-4 text-center rounded-lg font-bold transition duration-300 ease-in-out hover:drop-shadow-lg hover:text-white"
                         onclick={() => selectLocation(location)}
                     >
                         {location}
@@ -88,7 +117,7 @@
 
         <button
             class="rounded-lg border border-indigo-500 text-indigo-500 font-medium w-full h-12 hover:bg-indigo-500 hover:text-white transition duration-300 ease-in-out"
-            onclick={submitVote}
+            onclick={addVote}
         >
             Submit Vote
         </button>

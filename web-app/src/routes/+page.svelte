@@ -35,7 +35,7 @@
     <div class="w-full max-w-sm space-y-4">
         <input
             id="pollIdField"
-            class="rounded-lg border border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:drop-shadow-md transition-shadow ease-in-out duration-200"
             type="text"
             placeholder="Enter the Poll ID"
             required

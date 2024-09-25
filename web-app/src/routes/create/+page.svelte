@@ -5,7 +5,7 @@
     let question: string = $state("");
     let options: string[] = $state([]);
     let locations: string[] = $state([]);
-    let durationHours: number = $state(0);
+    let durationHours: number = $state(24);
     let pollId: string;
 
     async function addPoll() {
@@ -64,21 +64,19 @@
     <div class="text-center text-slate-600 text-6xl min-h-20 font-extrabold mb-6">
         Create a New Poll
     </div>
-    <div class="flex flex-col gap-6 w-full max-w-2xl space-y-4">
+    <div class="flex flex-col gap-6 w-full item max-w-2xl space-y-4">
         <div class="flex flex-col gap-4 w-full">
             <div class="flex items-left text-slate-500 text-xl font-extrabold">
                 1. Poll Question
             </div>
-            <div class="flex flex-row items-center gap-4 rounded-lg bg-indigo-400 p-2 w-full drop-shadow-md">
                 <textarea
-                    class="rounded-lg border border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    class="rounded-lg border border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:drop-shadow-md transition-shadow ease-in-out duration-200"
                     placeholder="Enter Question to ask"
                     rows="6"
                     required
                     minlength="4"
                     bind:value={question}
                 ></textarea>
-            </div>
         </div>
 
         <div class="flex flex-col gap-4">
@@ -107,14 +105,12 @@
                     </div>
                 {/each}
             </div>
-            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
                 <input
-                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:drop-shadow-md transition-shadow ease-in-out duration-200"
                     type="text"
                     placeholder="Enter new option. Press 'Enter' to add option."
                     onkeydown={addOption}
                 />
-            </div>
         </div>
 
         <div class="flex flex-col gap-4">
@@ -140,32 +136,28 @@
                     </div>
                 {/each}
             </div>
-            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
                 <input
-                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:drop-shadow-md transition-shadow ease-in-out duration-200"
                     type="text"
                     placeholder="Enter new Location. Press 'Enter' to add location."
                     onkeydown={addLocation}
                 />
-            </div>
         </div>
 
         <div class="flex flex-col gap-4 w-full">
             <div class="flex items-left text-slate-500 text-xl font-extrabold">
                 4. Poll Duration (in Hours)
             </div>
-            <div class="flex flex-row items-center gap-4 rounded-lg border border-gray-300 p-2 w-full">
                 <input
-                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    class="rounded-lg border bg-white border-gray-300 p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:drop-shadow-md transition-shadow ease-in-out duration-200"
                     type="number"
                     placeholder="Enter duration in hours"
                     bind:value={durationHours}
                     min="1"
                 />
-            </div>
         </div>
         <button
-            class="rounded-lg bg-indigo-500 text-white font-medium w-full h-12 hover:bg-indigo-600 hover:scale-110 hover:drop-shadow-md transition duration-300 ease-in-out"
+            class="rounded-lg bg-indigo-500 text-white w-1/2 mx-auto font-medium h-12 hover:bg-indigo-600 hover:drop-shadow-md transition duration-200 ease-in-out"
             onclick={addPoll}
         >
         Submit
