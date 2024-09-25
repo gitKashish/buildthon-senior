@@ -2,10 +2,10 @@
     import { isPollOpen } from "$lib/index";
 
     let pollId = $state("");
+
     let loading = $state(false);
 
     function loadPollPage() {
-        loading = true;
         pollId = pollId.trim();
         if (pollId.length != 36) {
             alert("Invalid Poll ID");
@@ -13,6 +13,7 @@
             loading = false;
             return;
         }
+        loading = true;
         isPollOpen(pollId)
             .then((response) => {
                 const isOpen = response.result.result;

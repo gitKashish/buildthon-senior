@@ -136,6 +136,7 @@
                             class="rounded-lg bg-indigo-300 text-white font-bold text-center w-1/4 h-12 hover:bg-red-400 hover:drop-shadow-md transition duration-300 ease-in-out p-2"
                             onclick={deleteOption}
                             data-index={i}
+                            disabled={loading}
                         >
                             Remove
                         </button>

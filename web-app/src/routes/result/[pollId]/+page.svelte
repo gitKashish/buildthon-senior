@@ -4,14 +4,14 @@
         PollStateResponse,
         PollStateDetails,
         AggregateOption,
-        LocationFrequency,
     } from "$lib/ambient";
     import { pollState } from "$lib/index";
     import { quadInOut } from "svelte/easing";
-    import { fly } from "svelte/transition";
+    import { fade } from "svelte/transition";
 
     const pollId = $page.params.pollId;
     let loading: boolean = $state(false);
+    let loadingText: string = $state("");
 
     let question: string = $state("");
     let options: AggregateOption[] = $state([]);
@@ -25,6 +25,7 @@
             location.href = `/`;
         }
         loading = true;
+        loadingText = "Loading result...";
         pollState(pollId)
             .then((obj) => {
                 let pollStateResponse: PollStateResponse = obj;
@@ -33,7 +34,6 @@
                 options = pollResult.options;
                 optionKeys = Object.keys(options);
                 totalVotes = pollResult.totalVotes;
-                console.log(options);
             })
             .catch((error) => {
                 window.alert("Unable to fetch poll details : " + error);
@@ -42,36 +42,53 @@
                 loading = false;
             });
     });
+
+    function loadHome() {
+        location.href = `/`;
+    }
 </script>
 
-{#if loading}
+{#if loading || options.length == 0}
     <span
-        class="flex flex-col justify-center text-center text-slate-600 text-6xl font-extrabold min-h-screen"
-        >Loading...</span
+        class="flex flex-col justify-center text-center text-slate-600 text-4xl font-extrabold min-h-screen"
+        >{loadingText}</span
     >
 {:else}
     <div
-        class="flex flex-col justify-center items-center min-h-screen max-w-lg m-auto p-6"
+        class="flex flex-col justify-center text-left min-h-screen max-w-lg m-auto p-6"
     >
-        <div class="text-slate-600 text-4xl font-extrabold w-full">
-            Result : {question}
+        <div class="text-slate-600 text-6xl mx-auto mb-6 font-extrabold">
+            Result
         </div>
-        <span class="text-left text-slate-400 text-lg font-bold w-full mb-8">
-            Poll ID : {pollId}
-        </span>
-        <div class="flex flex-col gap-4 w-full items-center">
-            <div class="flex text-slate-500 text-xl font-extrabold">
+        <span class="text-left text-slate-600 text-2xl rounded-lg border-2 border-gray-500 p-4 bg-white drop-shadow-md font-bold w-full mb-8"
+            >Que - {question}</span
+        >
+        <!-- <span class="text-left text-slate-400 text-md w-full mb-8">
+    Poll ID : {pollId}
+</span> -->
+        <div class="flex flex-col w-full mb-8 space-y-4">
+            <span class="flex items-left text-slate-500 text-xl font-extrabold">
                 Total Votes : {totalVotes}
-            </div>
+            </span>
             <div class="flex flex-col gap-2 w-full">
-                {#each optionKeys as option, i}
+                {#each optionKeys as option}
                     <button
-                        class="bg-white text-gray-700 border-2 border-indigo-500 w-full p-4 text-center rounded-lg font-bold transition duration-300 ease-in-out hover:bg-indigo-500 hover:drop-shadow-lg hover:text-white"
+                        in:fade={{
+                            duration: 300,
+                            easing: quadInOut,
+                        }}
+                        class="bg-white text-gray-700 border-2 border-indigo-500 w-full p-4 text-center rounded-lg font-bold transition duration-300 ease-in-out hover:drop-shadow-lg hover:text-white hover:bg-indigo-500"
                     >
-                        {option} : {options[option]["total"]}
+                        {option} [{options[option]["total"]}/{totalVotes}];
                     </button>
                 {/each}
             </div>
         </div>
+        <button
+            class="rounded-lg bg-indigo-500 text-white font-medium w-full h-12 hover:bg-indigo-600 transition duration-300 ease-in-out"
+            onclick={loadHome}
+        >
+            Go to Home
+        </button>
     </div>
 {/if}

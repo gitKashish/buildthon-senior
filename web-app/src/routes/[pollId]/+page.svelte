@@ -3,11 +3,14 @@
     import { isPollOpen } from "$lib/index";
     const pollId = $page.params.pollId;
 
+    let loadingText = $state("");
+
     $effect(() => {
         if (pollId.length != 36) {
-            alert("Invalid Poll ID. Returning to home.");
+            loadingText = "Invalid Poll ID. Redirecting to Home...";
             location.href = `/`;
         }
+        loadingText = "Checking Poll status..."
         isPollOpen(pollId)
             .then((obj) => {
                 if (obj.result.result) {
@@ -16,8 +19,15 @@
                     location.href = `/result/${pollId}`;
                 }
             })
-            .catch((error) => {
-                alert("Invalid Poll Id : " + error);
+            .catch(() => {
+                loadingText = "Poll ID does not exist. Redirecting to Home...";
+                location.href = `/`;
             });
     });
 </script>
+
+<span
+    class="flex flex-col justify-center text-center text-slate-600 text-4xl font-extrabold min-h-screen"
+>
+    {loadingText}
+</span>
